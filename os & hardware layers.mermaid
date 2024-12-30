@@ -1,0 +1,94 @@
+flowchart TB
+    %% User Space
+    subgraph UserSpace["User Space"]
+        Apps["User Applications"]
+        Glibc["GNU C Library (glibc)"]
+        
+        subgraph SysUtils["System Utilities"]
+            Tools["System Tools"]
+            PkgMgr["Package Manager"]
+            Systemd["Service Manager (systemd)"]
+        end
+    end
+    
+    %% Kernel Space
+    subgraph KernelSpace["Kernel Space"]
+        Syscall["System Call Interface<br>syscalls.h"]
+        
+        subgraph CoreKernel["Core Kernel Subsystems"]
+            ProcMgr["Process Management<br>scheduler.c, fork.c"]
+            MemMgr["Memory Management<br>mm/, page-alloc.c"]
+            VFS["Virtual File System<br>fs/"]
+            NetStack["Network Stack<br>net/"]
+            IPC["Inter-Process Communication"]
+        end
+        
+        subgraph ArchCode["Architecture Specific Code"]
+            Arch["arch/x86, arm, riscv"]
+            CPUMgr["CPU Management<br>SMP Support"]
+            IntHandler["Interrupt Handling"]
+            MMU["Memory Management Unit"]
+        end
+        
+        subgraph Drivers["Device Drivers"]
+            ChipsetDrv["Chipset Drivers<br>drivers/platform/"]
+            BlockDrv["Block Device Drivers<br>drivers/block/"]
+            CharDrv["Character Device Drivers<br>drivers/char/"]
+            NetDrv["Network Device Drivers<br>drivers/net/"]
+            InputDrv["Input Device Drivers<br>drivers/input/"]
+            GPUDrv["Graphics Drivers<br>drivers/gpu/"]
+            BusDrv["Bus Drivers<br>PCI, USB, etc."]
+        end
+    end
+    
+    %% Hardware
+    subgraph HW["Hardware"]
+        CPU["CPU/Cores"]
+        
+        subgraph Chipset["Platform Chipset"]
+            NorthBridge["Northbridge/<br>Memory Controller Hub"]
+            SouthBridge["Southbridge/<br>I/O Controller Hub"]
+            
+            subgraph Buses["System Buses"]
+                PCIe["PCI Express"]
+                USB["USB Controller"]
+                SATA["SATA Controller"]
+            end
+        end
+        
+        RAM["Physical Memory"]
+        Storage["Storage Devices"]
+        NIC["Network Interface"]
+        IODev["I/O Devices"]
+    end
+    
+    %% Connections
+    Apps --> Glibc
+    SysUtils --> Syscall
+    Glibc --> Syscall
+    Syscall --> CoreKernel
+    CoreKernel --> ArchCode
+    CoreKernel --> Drivers
+    ArchCode --> CPU
+    ChipsetDrv --> Chipset
+    BusDrv --> Buses
+    
+    %% Chipset connections
+    CPU --> NorthBridge
+    NorthBridge --> RAM
+    NorthBridge --> PCIe
+    NorthBridge --- SouthBridge
+    SouthBridge --> SATA
+    SouthBridge --> USB
+    SouthBridge --> NIC
+    SATA --> Storage
+    USB --> IODev
+    
+    %% Styling
+    classDef userSpace fill:#e6f3ff,stroke:#333
+    classDef kernelSpace fill:#ffe6e6,stroke:#333
+    classDef hardware fill:#f2e6ff,stroke:#333
+    
+    class UserSpace userSpace
+    class KernelSpace kernelSpace
+    class HW hardware
